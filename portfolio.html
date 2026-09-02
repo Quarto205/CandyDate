@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Agrim Bajpai — Systems &amp; AI</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#08090b;
+    --bg-2:#0d0f13;
+    --text:#f1efe9;
+    --dim:#7d8189;
+    --accent:#7a5cff;
+    --accent-soft: rgba(122,92,255,0.45);
+    --rail:#ff8a3d;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'JetBrains Mono', monospace;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    cursor:none;
+  }
+  a{ color:inherit; }
+
+  .font-display{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; }
+
+  @media (max-width: 768px){
+    *{ cursor:auto; }
+    #cursor{ display:none; }
+  }
+
+  /* cursor */
+  #cursor{
+    position:fixed; top:0; left:0; width:18px; height:18px;
+    border:2px solid var(--accent); border-radius:50%;
+    transform:translate(-50%,-50%);
+    pointer-events:none; z-index:9999;
+    transition:width .2s, height .2s, border-color .2s, background-color .2s;
+    mix-blend-mode:difference;
+  }
+  #cursor.hover-state{
+    width:52px; height:52px;
+    background-color:var(--text); border-color:var(--text);
+  }
+
+  /* loader */
+  #loader{
+    position:fixed; inset:0; z-index:999;
+    background:var(--accent);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition:transform .9s cubic-bezier(.76,0,.24,1);
+  }
+  #loader.hidden{ transform:translateY(-100%); }
+  .loader-num{
+    font-size:16vw; line-height:.85; color:transparent;
+    -webkit-text-stroke:2px var(--bg);
+    letter-spacing:-.02em;
+  }
+  .loader-tag{
+    font-size:.75rem; letter-spacing:.15em; color:var(--bg); margin-top:1rem;
+    text-transform:uppercase;
+  }
+
+  /* header */
+  header{
+    position:fixed; inset:0 0 auto 0; z-index:60;
+    padding:2rem clamp(1.2rem,4vw,2.5rem);
+    display:flex; justify-content:space-between; align-items:flex-start;
+    pointer-events:none;
+  }
+  header > *{ pointer-events:auto; }
+
+  .brand{ text-decoration:none; line-height:.92; }
+  .brand .name{ font-size:clamp(1.6rem,3vw,2.2rem); display:block; }
+  .brand .role{ color:var(--accent); }
+
+  .about-btn{
+    background:transparent; border:1px solid rgba(241,239,233,.25);
+    color:var(--text); font-family:'JetBrains Mono',monospace;
+    font-size:.8rem; letter-spacing:.05em; padding:.55rem 1rem;
+    border-radius:2px; transition:border-color .3s, color .3s;
+  }
+  .about-btn:hover{ border-color:var(--accent); color:var(--accent); }
+
+  /* footer bar */
+  .footer-bar{
+    position:fixed; left:0; right:0; bottom:0; z-index:60;
+    padding:1.4rem clamp(1.2rem,4vw,2.5rem);
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap:1rem; flex-wrap:wrap;
+    pointer-events:none;
+  }
+  .footer-bar > *{ pointer-events:auto; }
+  .tagline{ font-size:.78rem; color:var(--dim); line-height:1.6; max-width:22rem; }
+  .tagline span{ color:var(--text); }
+  .links{ display:flex; gap:1.6rem; font-size:.82rem; }
+  .links a{ text-decoration:none; color:var(--dim); position:relative; padding-bottom:2px; }
+  .links a::after{
+    content:''; position:absolute; left:0; bottom:0; width:100%; height:1px;
+    background:var(--accent); transform:scaleX(0); transform-origin:left;
+    transition:transform .3s ease;
+  }
+  .links a:hover{ color:var(--text); }
+  .links a:hover::after{ transform:scaleX(1); }
+
+  /* stage */
+  .stage{
+    position:relative; width:100%; min-height:100vh;
+    perspective:1200px;
+    padding:11rem clamp(1.2rem,6vw,6rem) 9rem;
+    display:flex; align-items:center;
+  }
+
+  .rail-line{
+    position:absolute; left:0; top:0; bottom:0; width:1px;
+    background:linear-gradient(to bottom, transparent, rgba(122,92,255,.35), transparent);
+  }
+
+  .projects{ list-style:none; margin:0; padding:0; width:100%; }
+
+  .project-item{ border-bottom:1px solid rgba(241,239,233,.08); }
+  .project-item:first-child{ border-top:1px solid rgba(241,239,233,.08); }
+
+  .project-inner{
+    display:grid;
+    grid-template-columns: 3.5rem 1fr auto;
+    align-items:center;
+    gap:1.5rem;
+    padding:2.4rem 0;
+    text-decoration:none;
+    transform:rotateX(0deg) translateZ(0);
+    transform-style:preserve-3d;
+    transform-origin:left center;
+    transition:transform .55s cubic-bezier(.19,1,.22,1), padding .55s ease;
+  }
+  .project-item:hover .project-inner{
+    transform:rotateX(4deg) translateZ(40px);
+    padding-left:1.2rem;
+  }
+
+  .project-index{ color:var(--dim); font-size:.85rem; }
+
+  .project-title{
+    font-family:'Big Shoulders Display', sans-serif; font-weight:800;
+    font-size:clamp(2.6rem,6.4vw,6rem); line-height:.92;
+    text-transform:uppercase; color:transparent;
+    -webkit-text-stroke:1.5px var(--text);
+    transition:color .35s ease, -webkit-text-stroke .35s ease, text-shadow .35s ease;
+  }
+  .project-item:hover .project-title{
+    color:var(--text); -webkit-text-stroke:0px transparent;
+    text-shadow:0 0 40px var(--accent-soft);
+  }
+
+  .project-meta{
+    text-align:right; font-size:.78rem; color:var(--dim);
+    display:flex; flex-direction:column; gap:.4rem; align-items:flex-end;
+    opacity:0; transform:translateX(12px);
+    transition:opacity .4s ease, transform .4s ease;
+  }
+  .project-item:hover .project-meta{ opacity:1; transform:translateX(0); }
+  .project-meta .stack{ color:var(--rail); }
+  .project-meta .status{
+    border:1px solid rgba(241,239,233,.25); padding:.15rem .5rem; border-radius:2px;
+  }
+
+  .project-desc{
+    grid-column: 2 / 3;
+    font-size:.85rem; color:var(--dim); max-width:38rem; line-height:1.6;
+    margin-top:.9rem;
+    display:none;
+  }
+
+  /* about panel */
+  #about-panel{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(8,9,11,.96); backdrop-filter:blur(14px);
+    opacity:0; pointer-events:none; transition:opacity .5s ease;
+    overflow-y:auto;
+  }
+  #about-panel.active{ opacity:1; pointer-events:auto; }
+
+  .panel-inner{
+    max-width:56rem; margin:0 auto; padding:6rem 2rem 4rem; position:relative;
+  }
+  .close-btn{
+    position:absolute; top:2rem; right:2rem; font-size:2rem; background:none; border:none;
+    color:var(--dim); line-height:1;
+  }
+  .close-btn:hover{ color:var(--text); }
+
+  .panel-inner h2{
+    font-family:'Big Shoulders Display', sans-serif; font-weight:800;
+    font-size:clamp(2.4rem,6vw,4rem); text-transform:uppercase; line-height:.95; margin:0 0 2rem;
+  }
+  .panel-inner h2 .accent{ color:var(--accent); }
+
+  .panel-bio{ color:var(--dim); font-size:1rem; line-height:1.8; max-width:38rem; margin-bottom:2.5rem; }
+  .panel-bio strong{ color:var(--text); font-weight:500; }
+
+  .contact-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:1.5rem; border-top:1px solid rgba(241,239,233,.1); padding-top:2rem;
+  }
+  .contact-item .label{ font-size:.7rem; letter-spacing:.1em; color:var(--dim); text-transform:uppercase; margin-bottom:.4rem; }
+  .contact-item a, .contact-item span{ font-size:.95rem; word-break:break-word; }
+  .contact-item a{ text-decoration:none; }
+  .contact-item a:hover{ color:var(--accent); }
+
+  /* reveal */
+  .reveal{ opacity:0; transform:translateY(16px); transition:opacity .7s ease, transform .7s ease; }
+  body.loaded .reveal{ opacity:1; transform:translateY(0); }
+
+  @media (max-width:768px){
+    .project-inner{ grid-template-columns: 2.2rem 1fr; }
+    .project-meta{ display:none; }
+    .stage{ padding-top:9.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<div id="loader">
+  <div class="font-display loader-num" id="loader-progress">00</div>
+  <div class="loader-tag">Compiling profile</div>
+</div>
+
+<header>
+  <a href="#" class="brand reveal">
+    <span class="name font-display">Agrim<br>Bajpai</span>
+    <span class="role" style="font-size:.8rem; letter-spacing:.05em;">CS. AI / SYSTEMS</span>
+  </a>
+  <button id="about-toggle" class="about-btn reveal hover-target" style="transition-delay:.1s;">[ About // Connect ]</button>
+</header>
+
+<div class="stage">
+  <div class="rail-line" style="left:2.5rem;"></div>
+  <main style="width:100%;">
+    <ul class="projects">
+      <li class="project-item reveal" style="transition-delay:.15s;">
+        <a href="https://github.com/Quarto205" target="_blank" rel="noopener" class="project-inner hover-target">
+          <span class="project-index">01</span>
+          <span class="project-title">Railway Traffic<br>Optimization Engine</span>
+          <span class="project-meta">
+            <span class="stack">Python · RL · Graph Algos</span>
+            <span>Aug 2025</span>
+            <span class="status">GitHub ↗</span>
+          </span>
+          <span class="project-desc">Neuro-symbolic routing engine combining Dijkstra and Yen's K-Shortest Paths with a PPO reinforcement-learning agent, trained in a custom Gymnasium environment to resolve rail junction conflicts in real time. A local LLM turns routing decisions into explainable operational directives.</span>
+        </a>
+      </li>
+      <li class="project-item reveal" style="transition-delay:.2s;">
+        <a href="https://github.com/Quarto205" target="_blank" rel="noopener" class="project-inner hover-target">
+          <span class="project-index">02</span>
+          <span class="project-title">CureSage</span>
+          <span class="project-meta">
+            <span class="stack">Python · FastAPI · NLP</span>
+            <span>Dec 2024 — Ongoing</span>
+            <span class="status">GitHub ↗</span>
+          </span>
+          <span class="project-desc">AI-powered healthcare assistant with a knowledge-based symptom analysis engine, geolocation-aware hospital and pharmacy recommendations, and separate doctor/patient portals for appointment booking and queue management.</span>
+        </a>
+      </li>
+    </ul>
+  </main>
+</div>
+
+<div class="footer-bar">
+  <div class="tagline reveal" style="transition-delay:.3s;">
+    <span>&gt; Systems &amp; AI/ML</span><br>
+    &gt; Reinforcement learning, explainable AI<br>
+    &gt; Open to internships &amp; collaboration
+  </div>
+  <div class="links reveal" style="transition-delay:.35s;">
+    <a href="https://github.com/Quarto205" target="_blank" rel="noopener" class="hover-target">GitHub</a>
+    <a href="https://www.linkedin.com/in/agrim-bajpai" target="_blank" rel="noopener" class="hover-target">LinkedIn</a>
+    <a href="mailto:agrimbajpai2005@gmail.com" class="hover-target">Email</a>
+  </div>
+</div>
+
+<section id="about-panel">
+  <div class="panel-inner">
+    <button id="close-about" class="close-btn hover-target">&times;</button>
+    <h2>System<br><span class="accent">Architecture.</span></h2>
+    <p class="panel-bio">
+      I build systems where <strong>algorithms meet intelligence</strong> — from reinforcement-learning agents that resolve railway conflicts in real time, to explainable AI that turns model decisions into plain-language directives. I work across the stack: data pipelines, RL environments, and the interfaces that make the results usable.
+    </p>
+    <div class="contact-grid">
+      <div class="contact-item">
+        <div class="label">GitHub</div>
+        <a href="https://github.com/Quarto205" target="_blank" rel="noopener" class="hover-target">github.com/Quarto205</a>
+      </div>
+      <div class="contact-item">
+        <div class="label">LinkedIn</div>
+        <a href="https://www.linkedin.com/in/agrim-bajpai" target="_blank" rel="noopener" class="hover-target">linkedin.com/in/agrim-bajpai</a>
+      </div>
+      <div class="contact-item">
+        <div class="label">Email</div>
+        <a href="mailto:agrimbajpai2005@gmail.com" class="hover-target">agrimbajpai2005@gmail.com</a>
+      </div>
+      <div class="contact-item">
+        <div class="label">Mobile</div>
+        <span>+91-8081054388</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // loader
+  const loader = document.getElementById('loader');
+  const progressText = document.getElementById('loader-progress');
+  let progress = 0;
+  const tick = () => {
+    progress += Math.floor(Math.random()*10)+4;
+    if(progress > 100){ progress = 100; }
+    progressText.textContent = String(progress).padStart(2,'0');
+    if(progress < 100){
+      setTimeout(tick, 90);
+    } else {
+      setTimeout(() => {
+        loader.classList.add('hidden');
+        document.body.classList.add('loaded');
+      }, 200);
+    }
+  };
+  tick();
+
+  // custom cursor
+  const cursor = document.getElementById('cursor');
+  window.addEventListener('mousemove', (e) => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+  document.querySelectorAll('.hover-target').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hover-state'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hover-state'));
+  });
+
+  // about panel
+  const panel = document.getElementById('about-panel');
+  document.getElementById('about-toggle').addEventListener('click', () => panel.classList.add('active'));
+  document.getElementById('close-about').addEventListener('click', () => panel.classList.remove('active'));
+  panel.addEventListener('click', (e) => { if(e.target === panel) panel.classList.remove('active'); });
+  window.addEventListener('keydown', (e) => { if(e.key === 'Escape') panel.classList.remove('active'); });
+});
+</script>
+
+</body>
+</html>
